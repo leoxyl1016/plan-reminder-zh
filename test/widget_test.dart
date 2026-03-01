@@ -92,6 +92,16 @@ void main() {
     expect(result.dateTime, DateTime(2026, 2, 15, 16, 0));
   });
 
+  test('parses "3rd of March" phrasing', () {
+    final result = parser.parse(
+      'I have a job interview on 3rd of March at 2:00 p.m.',
+      reference: reference,
+    );
+
+    expect(result.title, 'I have a job interview');
+    expect(result.dateTime, DateTime(2026, 3, 3, 14, 0));
+  });
+
   test('parses malformed pm token like "3p.pm."', () {
     final result = parser.parse(
       'interview at 3p.pm.',
