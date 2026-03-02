@@ -54,7 +54,6 @@ class LocalEventParserService implements EventParserService {
 
   static final RegExp _dayMonthRegex = RegExp(
     r'\b(\d{1,2})(?:st|nd|rd|th)?\s+'
-    r'(?:of\s+)?'
     r'(january|jan|february|feb|march|mar|april|apr|may|june|jun|july|jul|'
     r'august|aug|september|sep|sept|october|oct|november|nov|december|dec)'
     r'(?:\s+(\d{4}))?\b',
