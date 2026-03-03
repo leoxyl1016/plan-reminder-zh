@@ -31,6 +31,7 @@ class ReminderApp extends StatelessWidget {
         BlocProvider<ChatBloc>(
           create: (_) => ChatBloc(
             parserService: ServiceRegistry.parserService,
+            chatRepository: ServiceRegistry.chatRepository,
             voiceInputService: ServiceRegistry.voiceInputService,
           ),
         ),

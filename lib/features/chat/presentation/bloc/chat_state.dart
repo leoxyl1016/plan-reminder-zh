@@ -1,12 +1,6 @@
 part of 'chat_bloc.dart';
 
-enum ChatStatus {
-  initial,
-  loading,
-  parsed,
-  error,
-  listening,
-}
+enum ChatStatus { initial, loading, parsed, error, listening }
 
 class ChatState extends Equatable {
   const ChatState({
@@ -18,15 +12,16 @@ class ChatState extends Equatable {
   });
 
   factory ChatState.initial() {
+    return ChatState.fromMessages(const <ChatMessage>[]);
+  }
+
+  factory ChatState.fromMessages(List<ChatMessage> messages) {
+    final initialMessages = messages.isEmpty
+        ? <ChatMessage>[_welcomeMessage()]
+        : messages;
+
     return ChatState(
-      messages: <ChatMessage>[
-        ChatMessage(
-          id: 'welcome',
-          text: 'Type or speak your plan, and I will build the reminder offline.',
-          author: ChatAuthor.assistant,
-          createdAt: DateTime.now(),
-        ),
-      ],
+      messages: initialMessages,
       status: ChatStatus.initial,
       draftText: '',
     );
@@ -54,17 +49,27 @@ class ChatState extends Equatable {
           ? this.parsedEvent
           : parsedEvent as ParsedEvent?,
       draftText: draftText ?? this.draftText,
-      errorMessage:
-          errorMessage == _sentinel ? this.errorMessage : errorMessage as String?,
+      errorMessage: errorMessage == _sentinel
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 
   @override
   List<Object?> get props => <Object?>[
-        messages,
-        status,
-        parsedEvent,
-        draftText,
-        errorMessage,
-      ];
+    messages,
+    status,
+    parsedEvent,
+    draftText,
+    errorMessage,
+  ];
+
+  static ChatMessage _welcomeMessage() {
+    return ChatMessage(
+      id: 'welcome',
+      text: 'Type or speak your plan, and I will build the reminder offline.',
+      author: ChatAuthor.assistant,
+      createdAt: DateTime.now(),
+    );
+  }
 }

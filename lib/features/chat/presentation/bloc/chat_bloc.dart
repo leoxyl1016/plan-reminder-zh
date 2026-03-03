@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/services/voice_input_service.dart';
 import '../../../../core/utils/date_time_extensions.dart';
+import '../../domain/repositories/chat_repository.dart';
 import '../../../parser/domain/entities/parsed_event.dart';
 import '../../../parser/domain/services/event_parser_service.dart';
 import '../../../reminder/domain/entities/reminder_event.dart';
@@ -14,13 +18,15 @@ part 'chat_state.dart';
 
 class ChatBloc extends Bloc<ChatEventAction, ChatState> {
   ChatBloc({
+    required ChatRepository chatRepository,
     required EventParserService parserService,
     required VoiceInputService voiceInputService,
     Uuid? uuid,
-  })  : _parserService = parserService,
-        _voiceInputService = voiceInputService,
-        _uuid = uuid ?? const Uuid(),
-        super(ChatState.initial()) {
+  }) : _chatRepository = chatRepository,
+       _parserService = parserService,
+       _voiceInputService = voiceInputService,
+       _uuid = uuid ?? const Uuid(),
+       super(ChatState.fromMessages(chatRepository.loadMessages())) {
     on<ChatDraftUpdated>(_onDraftUpdated);
     on<ChatMessageSubmitted>(_onMessageSubmitted);
     on<ChatVoiceInputStarted>(_onVoiceInputStarted);
@@ -30,14 +36,21 @@ class ChatBloc extends Bloc<ChatEventAction, ChatState> {
     on<ChatReminderConfirmed>(_onReminderConfirmed);
   }
 
+  final ChatRepository _chatRepository;
   final EventParserService _parserService;
   final VoiceInputService _voiceInputService;
   final Uuid _uuid;
 
-  void _onDraftUpdated(
-    ChatDraftUpdated event,
-    Emitter<ChatState> emit,
-  ) {
+  @override
+  void onChange(Change<ChatState> change) {
+    super.onChange(change);
+
+    if (!listEquals(change.currentState.messages, change.nextState.messages)) {
+      unawaited(_persistMessages(change.nextState.messages));
+    }
+  }
+
+  void _onDraftUpdated(ChatDraftUpdated event, Emitter<ChatState> emit) {
     emit(state.copyWith(draftText: event.text));
   }
 
@@ -79,8 +92,9 @@ class ChatBloc extends Bloc<ChatEventAction, ChatState> {
         ),
       );
     } catch (error) {
-      final errorMessage =
-          error is ParserException ? error.message : 'Could not parse message.';
+      final errorMessage = error is ParserException
+          ? error.message
+          : 'Could not parse message.';
       final systemMessage = _buildMessage(errorMessage, ChatAuthor.system);
 
       emit(
@@ -139,8 +153,9 @@ class ChatBloc extends Bloc<ChatEventAction, ChatState> {
     if (state.status == ChatStatus.listening) {
       emit(
         state.copyWith(
-          status:
-              state.parsedEvent == null ? ChatStatus.initial : ChatStatus.parsed,
+          status: state.parsedEvent == null
+              ? ChatStatus.initial
+              : ChatStatus.parsed,
         ),
       );
     }
@@ -173,10 +188,7 @@ class ChatBloc extends Bloc<ChatEventAction, ChatState> {
     );
   }
 
-  void _onReminderConfirmed(
-    ChatReminderConfirmed _,
-    Emitter<ChatState> emit,
-  ) {
+  void _onReminderConfirmed(ChatReminderConfirmed _, Emitter<ChatState> emit) {
     emit(
       state.copyWith(
         status: ChatStatus.initial,
@@ -194,5 +206,11 @@ class ChatBloc extends Bloc<ChatEventAction, ChatState> {
       author: author,
       createdAt: DateTime.now(),
     );
+  }
+
+  Future<void> _persistMessages(List<ChatMessage> messages) async {
+    try {
+      await _chatRepository.saveMessages(messages);
+    } catch (_) {}
   }
 }
