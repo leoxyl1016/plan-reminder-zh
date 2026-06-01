@@ -279,10 +279,8 @@ class LocalEventParserService implements EventParserService {
     try {
       // Detect if input is primarily Chinese
       final isChinese = _isChineseInput(normalized);
-      debugPrint('NLP: isChinese=$isChinese for "${normalized.length > 50 ? normalized.substring(0, 50) + "..." : normalized}"');
 
       final dateExtraction = _extractDate(normalized, now, isChinese: isChinese);
-      debugPrint('NLP: date=${dateExtraction.date}, hasDate=${dateExtraction.hasExplicitDate}, matched=${dateExtraction.matchedPhrases}');
     final timeExtraction = _extractTime(normalized, now, isChinese: isChinese);
     final locationExtraction = _extractLocation(normalized, isChinese: isChinese);
 
@@ -339,7 +337,6 @@ class LocalEventParserService implements EventParserService {
       sourceText: normalized,
     );
     } catch (e) {
-      debugPrint('NLP parse error: $e');
       throw ParserException('解析失败: $e');
     }
   }
