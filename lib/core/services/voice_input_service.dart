@@ -8,6 +8,7 @@ class VoiceInputService {
   bool _isInitialized = false;
   bool _isEnabled = true;
   VoidCallback? _activeOnDone;
+  String? _lastError;
 
   String _localeId = '';
   List<LocaleName> availableLocales = [];
@@ -15,6 +16,7 @@ class VoiceInputService {
   bool get isListening => _speechToText.isListening;
   bool get isEnabled => _isEnabled;
   String get localeId => _localeId;
+  String? get lastError => _lastError;
 
   Future<void> setLocale(String localeId) async {
     _localeId = localeId;
@@ -26,44 +28,74 @@ class VoiceInputService {
     if (!enabled) await cancelListening();
   }
 
-  Future<void> startListening({
+  /// Start listening and return any error that occurred (null = success).
+  /// Errors are also stored in [lastError].
+  Future<String?> startListening({
     required void Function(String transcript, bool isFinal) onResult,
     required VoidCallback onDone,
   }) async {
+    _lastError = null;
+
     if (!_isEnabled) {
-      throw const VoiceInputException('语音输入已在设置中关闭');
+      _lastError = '语音输入已在设置中关闭';
+      return _lastError;
     }
 
-    // Check mic permission first (Android)
-    final hasPermission = await _speechToText.hasPermission;
-    if (!hasPermission) {
-      throw const VoiceInputException(
-        '没有麦克风权限。\n请在系统「设置 → 应用 → 权限」中允许麦克风。',
-      );
+    // Check mic permission
+    try {
+      final hasPermission = await _speechToText.hasPermission;
+      if (!hasPermission) {
+        _lastError = '没有麦克风权限';
+        return _lastError;
+      }
+    } catch (e) {
+      _lastError = '无法检查麦克风权限: $e';
+      return _lastError;
     }
 
-    await _initializeIfNeeded();
+    // Initialize
+    try {
+      await _initializeIfNeeded();
+    } catch (e) {
+      _lastError = e.toString();
+      return _lastError;
+    }
+
     _activeOnDone = onDone;
 
-    // Use explicit locale if set, otherwise let device decide
+    // Determine locale
     final effectiveLocale = _localeId.isNotEmpty ? _localeId : null;
+    debugPrint('VoiceInput: starting listen with locale=$effectiveLocale');
 
-    await _speechToText.listen(
-      onResult: (result) {
-        onResult(result.recognizedWords, result.finalResult);
-        if (result.finalResult) {
-          _completeSession();
-        }
-      },
-      listenFor: const Duration(seconds: 30),
-      pauseFor: const Duration(seconds: 3),
-      localeId: effectiveLocale,
-      listenOptions: SpeechListenOptions(
-        partialResults: true,
-        cancelOnError: true,
-        listenMode: ListenMode.confirmation,
-      ),
-    );
+    try {
+      await _speechToText.listen(
+        onResult: (result) {
+          onResult(result.recognizedWords, result.finalResult);
+          if (result.finalResult) {
+            _completeSession();
+          }
+        },
+        listenFor: const Duration(seconds: 30),
+        pauseFor: const Duration(seconds: 3),
+        localeId: effectiveLocale,
+        listenOptions: SpeechListenOptions(
+          partialResults: true,
+          cancelOnError: false, // Don't cancel on error — let us handle it
+          listenMode: ListenMode.confirmation,
+        ),
+      );
+
+      // listen() completed normally
+      debugPrint('VoiceInput: listen completed normally');
+      _completeSession();
+      return null;
+
+    } catch (e) {
+      debugPrint('VoiceInput: listen() threw: $e');
+      _lastError = '语音识别出错: $e';
+      _completeSession();
+      return _lastError;
+    }
   }
 
   Future<void> stopListening() async {
@@ -81,30 +113,36 @@ class VoiceInputService {
   Future<void> _initializeIfNeeded() async {
     if (_isInitialized) return;
 
+    debugPrint('VoiceInput: initializing...');
+
     final available = await _speechToText.initialize(
       onStatus: (String status) {
         debugPrint('VoiceInput status: $status');
       },
-      onError: (_) {
-        debugPrint('VoiceInput error');
-        _completeSession();
+      onError: (error) {
+        debugPrint('VoiceInput engine error: $error');
+        _lastError = '语音引擎错误: $error';
       },
     );
 
     if (!available) {
-      throw const VoiceInputException(
+      _lastError = '语音识别不可用';
+      throw VoiceInputException(
         '语音识别不可用。\n'
-        '1. 请确认已授予麦克风权限\n'
-        '2. 手机需安装语音服务（Google 或讯飞）\n'
-        '   （部分国产手机需在应用商店搜索"语音识别"安装）',
+        '1. 确认已授予麦克风权限\n'
+        '2. 安装语音服务：华为/小米装"讯飞语音"，其他装 Google',
       );
     }
 
-    // Fetch available locales for settings display
+    debugPrint('VoiceInput: initialized OK');
+
+    // Fetch available locales
     try {
       availableLocales = await _speechToText.locales();
-      debugPrint('VoiceInput: ${availableLocales.length} locales');
-    } catch (_) {
+      debugPrint('VoiceInput: ${availableLocales.length} locales: '
+          '${availableLocales.map((l) => l.localeId).take(5).join(', ')}...');
+    } catch (e) {
+      debugPrint('VoiceInput: could not fetch locales: $e');
       availableLocales = [];
     }
 

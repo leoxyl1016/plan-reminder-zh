@@ -117,27 +117,27 @@ class ChatBloc extends Bloc<ChatEventAction, ChatState> {
 
     emit(state.copyWith(status: ChatStatus.listening, errorMessage: null));
 
-    try {
-      await _voiceInputService.startListening(
-        onResult: (String transcript, bool isFinal) {
-          add(
-            ChatVoiceTranscriptUpdated(
-              transcript: transcript,
-              isFinal: isFinal,
-            ),
-          );
-        },
-        onDone: () => add(const ChatVoiceInputStopped()),
-      );
-    } catch (error) {
-      final message = error.toString();
+    final error = await _voiceInputService.startListening(
+      onResult: (String transcript, bool isFinal) {
+        add(
+          ChatVoiceTranscriptUpdated(
+            transcript: transcript,
+            isFinal: isFinal,
+          ),
+        );
+      },
+      onDone: () => add(const ChatVoiceInputStopped()),
+    );
+
+    // If startListening returned an error, show it
+    if (error != null && !isClosed) {
       emit(
         state.copyWith(
           status: ChatStatus.error,
-          errorMessage: message,
+          errorMessage: error,
           messages: <ChatMessage>[
             ...state.messages,
-            _buildMessage(message, ChatAuthor.system),
+            _buildMessage(error, ChatAuthor.system),
           ],
         ),
       );
