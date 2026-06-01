@@ -102,8 +102,8 @@ class VoiceInputService {
           _completeSession();
         }
       },
-      onError: (SpeechToTextErrorNotification error) {
-        debugPrint('VoiceInput error: ${error.errorMsg}');
+      onError: (_) {
+        debugPrint('VoiceInput error');
         _completeSession();
       },
     );

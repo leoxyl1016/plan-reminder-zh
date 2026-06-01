@@ -320,7 +320,7 @@ class LocalEventParserService implements EventParserService {
     );
 
     if (title.isEmpty) {
-      throw const ParserException(
+      throw ParserException(
         isChinese
             ? '无法识别事件标题，请尝试："明天下午3点开会" 或 "Meeting tomorrow at 3pm"。'
             : 'Could not infer an event title. Try: "Meeting tomorrow at 10 am" or "明天下午3点开会"。',
