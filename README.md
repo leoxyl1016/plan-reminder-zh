@@ -1,6 +1,6 @@
 # Plan-Reminder-zh（提醒助手 中文版）
 
-基于 [NnAsankaMadushan/Plan-Reminder](https://github.com/NnAsankaMadushan/Plan-Reminder) 改造的中文离线日程助手。
+基于 [Plan-Reminder](https://github.com/NnAsankaMadushan/Plan-Reminder)（作者：NnAsankaMadushan，MIT 协议）改造的中文离线日程助手。
 
 ## 功能
 
@@ -10,6 +10,16 @@
 - 🔔 **本地提醒**：日程前发送通知
 - 📴 **完全离线**：NLP 解析、数据存储、通知提醒全程本地，无需网络
 - 🔗 **Google 日历同步**（可选）：需手动 OAuth 授权连接
+
+## 与原项目的区别
+
+| 维度 | 原 Plan-Reminder | 本版本 |
+|------|-----------------|--------|
+| NLP 语言 | 仅英文 | **中英双语**（正则引擎，纯本地） |
+| 界面语言 | 英文 | **全中文** |
+| 语音识别 | 英文 | 中文（需系统语音引擎支持） |
+| SMS/通知监听 | 无 | **新增**：短信、微信、Gmail 通知自动解析 |
+| 日程模式 | 基础英文日期 | 新增：下周/下个月/明年、下个月3号等 |
 
 ## 🔒 隐私与安全
 
@@ -24,7 +34,6 @@
 - ✅ 无 Firebase Analytics / Crashlytics / 任何遥测 SDK
 - ✅ 无硬编码 API 密钥
 - ✅ Google 日历同步默认关闭
-- ⚠️ Google Fonts 启动时从 CDN 下载字体（仅 IP 暴露，无用户数据）
 
 ## 安装
 
@@ -33,6 +42,12 @@
 安装后：
 1. 如需短信/通知自动识别：系统设置 → 无障碍 → 已安装的服务 → 开启「Reminder Buddy」
 2. 语音输入：推荐使用手机输入法的语音功能，无需额外配置
+
+## 署名
+
+- 原作者：[NnAsankaMadushan/Plan-Reminder](https://github.com/NnAsankaMadushan/Plan-Reminder)（MIT License）
+- 中文改造：[leoxyl1016/plan-reminder-zh](https://github.com/leoxyl1016/plan-reminder-zh)
+- 改造内容：中文 NLP 解析器、全 UI 中文化、短信/通知监听、语音中文适配、安全性增强
 
 ## 技术栈
 
@@ -44,4 +59,4 @@
 
 ## License
 
-MIT
+MIT — 详见 [LICENSE](./LICENSE)
