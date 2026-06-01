@@ -155,15 +155,15 @@ class LocalEventParserService implements EventParserService {
   // ── Chinese location regex ──
 
   /// 在XXX（教室/楼/会议室/办公室/大厅/广场/餐厅/图书馆/实验室/中心/厅/堂/馆/室/所/处/部/店/院/园）
-  /// Now captures alphanumeric + Chinese chars after the location suffix too.
+  /// After the location suffix, only allows digits, letters, and location modifiers (层/栋/号/etc).
   static final RegExp _locationZhRegex = RegExp(
-    r'(?:在|于|去|到|地点[：:]?\s*|位置[：:]?\s*)'
-    r'([\u4e00-\u9fff_a-zA-Z0-9（）()\-.·\s]{2,}'
+    r'(?:在|于|地点[：:]?\s*|位置[：:]?\s*)'
+    r'([\u4e00-\u9fff_a-zA-Z0-9（）()\-.·]{2,}'
     r'(?:教室|教学楼|实验楼|办公楼|会议室|办公室|大厅|广场|餐厅|食堂|图书馆|体育馆|'
     r'实验室|中心|报告厅|礼堂|场馆|房间|大楼|大厦|公寓|宿舍|校区|学院|'
     r'银行|医院|酒店|饭店|商场|超市|公园|地铁站|车站|机场|'
     r'厅|堂|馆|室|所|处|部|店|院|园|楼|层)'
-    r'[\u4e00-\u9fff_a-zA-Z0-9（）()\-.·\d\s]*)',
+    r'[\dA-Za-z\-·层栋号座楼单元\d]{0,6})',
   );
 
   /// Simpler fallback: 在 XXXX （中文名詞後面）
@@ -894,8 +894,8 @@ class LocalEventParserService implements EventParserService {
       title = title.replaceAll(RegExp(r'(?:顺丰|中通|圆通|韵达|EMS|京东)?快递[：:]?\s*'), ' ');
       title = title.replaceAll(RegExp(r'(?:招商|工商|建设|农业|中国|交通|浦发|中信)?银行[：:]?\s*'), ' ');
       title = title.replaceAll(RegExp(r'(?:教务|学生|后勤|财务|信息)处[：:]?\s*'), ' ');
-      // Remove common stop words
-      title = title.replaceAll(RegExp(r'[在於于去到的了您请]'), ' ');
+      // Remove common stop words (but NOT 去/到 — they're meaningful verbs)
+      title = title.replaceAll(RegExp(r'[在了的您请]'), ' ');
       // Remove 将/定于/于/将于 etc.
       title = title.replaceAll(RegExp(r'(?:将|定|拟)\s*[于於在]'), ' ');
     }
