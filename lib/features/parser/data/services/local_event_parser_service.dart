@@ -127,9 +127,14 @@ class LocalEventParserService implements EventParserService {
     r'(下|下个|这|这个|本|上|上个)\s*个?\s*(?:星期|周)(?!\s*[一二三四五六日天])',
   );
 
-  /// 下个月 / 这个月 / 上个月
+  /// 下个月 / 这个月 / 上个月（不带具体日期）
   static final RegExp _monthOnlyZhRegex = RegExp(
     r'(下|下个|这|这个|本|上|上个)\s*个?\s*月(?!\s*\d|[日号])',
+  );
+
+  /// 下个月15号 / 这个月3日（月份偏移 + 具体日期）
+  static final RegExp _monthDayZhRegex = RegExp(
+    r'(下|下个|这|这个|本|上|上个)\s*个?\s*月\s*(\d{1,2})\s*[日号]',
   );
 
   /// 明年 / 今年 / 去年
@@ -436,6 +441,31 @@ class LocalEventParserService implements EventParserService {
           matchedPhrases: <String>[weekOnlyMatch.group(0)!],
           hasExplicitDate: true,
         );
+      }
+    }
+
+    // ── Chinese month-day: 下个月15号 / 这个月3日 ──
+    if (isChinese) {
+      final monthDayMatch = _monthDayZhRegex.firstMatch(input);
+      if (monthDayMatch != null) {
+        final prefix = monthDayMatch.group(1) ?? '';
+        final day = int.tryParse(monthDayMatch.group(2) ?? '');
+        final monthOffset = _monthOffsetZh[prefix] ?? 0;
+        if (day != null && day >= 1 && day <= 31) {
+          final targetMonth = today.month + monthOffset;
+          final targetYear = today.year + (targetMonth > 12 ? 1 : (targetMonth < 1 ? -1 : 0));
+          final adjustedMonth = targetMonth > 12 ? targetMonth - 12 : (targetMonth < 1 ? targetMonth + 12 : targetMonth);
+          final maxDay = DateTime(targetYear, adjustedMonth + 1, 0).day;
+          final targetDay = day > maxDay ? maxDay : day;
+          final rawDate = _safeDate(targetYear, adjustedMonth, targetDay);
+          if (rawDate != null) {
+            return _DateExtraction(
+              date: rawDate,
+              matchedPhrases: <String>[monthDayMatch.group(0)!],
+              hasExplicitDate: true,
+            );
+          }
+        }
       }
     }
 
