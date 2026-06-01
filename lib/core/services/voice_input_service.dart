@@ -9,40 +9,21 @@ class VoiceInputService {
   bool _isEnabled = true;
   VoidCallback? _activeOnDone;
 
-  /// Currently active locale. Defaults to auto-detect.
   String _localeId = '';
-
-  /// List of locales we prefer for Chinese recognition (in priority order)
-  static const _chineseLocales = <String>[
-    'zh-CN',   // BCP-47 for Android
-    'zh_CN',   // iOS format
-    'zh-Hans', // Simplified Chinese
-    'zh-Hant', // Traditional Chinese
-    'zh-TW',
-    'zh_HK',
-    'zh',      // Generic Chinese fallback
-  ];
+  List<LocaleName> availableLocales = [];
 
   bool get isListening => _speechToText.isListening;
   bool get isEnabled => _isEnabled;
   String get localeId => _localeId;
 
-  /// List of available locales on this device (populated after initialization)
-  List<LocaleName> availableLocales = [];
-
-  /// Set the speech recognition locale.
   Future<void> setLocale(String localeId) async {
     _localeId = localeId;
-    if (_isInitialized) {
-      _isInitialized = false;
-    }
+    _isInitialized = false;
   }
 
   Future<void> setEnabled(bool enabled) async {
     _isEnabled = enabled;
-    if (!enabled) {
-      await cancelListening();
-    }
+    if (!enabled) await cancelListening();
   }
 
   Future<void> startListening({
@@ -53,11 +34,19 @@ class VoiceInputService {
       throw const VoiceInputException('语音输入已在设置中关闭');
     }
 
+    // Check mic permission first (Android)
+    final hasPermission = await _speechToText.hasPermission;
+    if (!hasPermission) {
+      throw const VoiceInputException(
+        '没有麦克风权限。\n请在系统「设置 → 应用 → 权限」中允许麦克风。',
+      );
+    }
+
     await _initializeIfNeeded();
     _activeOnDone = onDone;
 
-    // Determine the best locale
-    final effectiveLocale = _resolveBestLocale();
+    // Use explicit locale if set, otherwise let device decide
+    final effectiveLocale = _localeId.isNotEmpty ? _localeId : null;
 
     await _speechToText.listen(
       onResult: (result) {
@@ -66,7 +55,7 @@ class VoiceInputService {
           _completeSession();
         }
       },
-      listenFor: const Duration(seconds: 20),
+      listenFor: const Duration(seconds: 30),
       pauseFor: const Duration(seconds: 3),
       localeId: effectiveLocale,
       listenOptions: SpeechListenOptions(
@@ -90,17 +79,11 @@ class VoiceInputService {
   }
 
   Future<void> _initializeIfNeeded() async {
-    if (_isInitialized) {
-      return;
-    }
+    if (_isInitialized) return;
 
     final available = await _speechToText.initialize(
       onStatus: (String status) {
         debugPrint('VoiceInput status: $status');
-        if (status == SpeechToText.doneStatus ||
-            status == SpeechToText.notListeningStatus) {
-          _completeSession();
-        }
       },
       onError: (_) {
         debugPrint('VoiceInput error');
@@ -110,74 +93,22 @@ class VoiceInputService {
 
     if (!available) {
       throw const VoiceInputException(
-        '语音识别不可用。请确认：\n'
-        '1. 已授予麦克风权限\n'
-        '2. 手机已安装 Google 或讯飞语音服务\n'
-        '（部分国产手机需手动安装 Google 语音服务）',
+        '语音识别不可用。\n'
+        '1. 请确认已授予麦克风权限\n'
+        '2. 手机需安装语音服务（Google 或讯飞）\n'
+        '   （部分国产手机需在应用商店搜索"语音识别"安装）',
       );
     }
 
-    // Fetch available locales
+    // Fetch available locales for settings display
     try {
       availableLocales = await _speechToText.locales();
-      debugPrint(
-        'VoiceInput: ${availableLocales.length} locales available',
-      );
+      debugPrint('VoiceInput: ${availableLocales.length} locales');
     } catch (_) {
       availableLocales = [];
     }
 
     _isInitialized = true;
-  }
-
-  /// Find the best Chinese locale available on this device.
-  /// Falls back to device default if no Chinese locale found.
-  String? _resolveBestLocale() {
-    // If user explicitly set a locale, try it first
-    if (_localeId.isNotEmpty) {
-      // Try exact match
-      if (availableLocales.isEmpty ||
-          availableLocales.any((l) => l.localeId == _localeId)) {
-        return _localeId;
-      }
-      // Try matching just the language part
-      final langPart = _localeId.split('-').first.split('_').first;
-      final match = _findLocaleByLanguage(langPart);
-      if (match != null) return match;
-    }
-
-    // Auto-detect: try Chinese locales in priority order
-    for (final locale in _chineseLocales) {
-      if (_findLocaleByLanguage(locale.split('-').first.split('_').first) != null) {
-        final match = availableLocales.firstWhere(
-          (l) => l.localeId == locale,
-          orElse: () => availableLocales.firstWhere(
-            (l) => l.localeId.startsWith('${locale.split('-').first}_') ||
-                l.localeId.startsWith('${locale.split('-').first}-'),
-            orElse: () => LocaleName('', ''),
-          ),
-        );
-        if (match.localeId.isNotEmpty) {
-          debugPrint('VoiceInput: using locale ${match.localeId}');
-          return match.localeId;
-        }
-      }
-    }
-
-    // No Chinese locale found — let platform decide
-    debugPrint('VoiceInput: no Chinese locale found, using device default');
-    return null;
-  }
-
-  String? _findLocaleByLanguage(String lang) {
-    try {
-      final match = availableLocales.firstWhere(
-        (l) => l.localeId.startsWith('$lang-') || l.localeId.startsWith('${lang}_'),
-      );
-      return match.localeId;
-    } catch (_) {
-      return null;
-    }
   }
 
   void _completeSession() {
@@ -189,9 +120,7 @@ class VoiceInputService {
 
 class VoiceInputException implements Exception {
   const VoiceInputException(this.message);
-
   final String message;
-
   @override
   String toString() => message;
 }
