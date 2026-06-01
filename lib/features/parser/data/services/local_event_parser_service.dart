@@ -273,13 +273,16 @@ class LocalEventParserService implements EventParserService {
     final now = reference ?? DateTime.now();
     final normalized = _normalize(message);
     if (normalized.isEmpty) {
-      throw const ParserException('请输入提醒内容。');
+      throw ParserException('请输入提醒内容。');
     }
 
-    // Detect if input is primarily Chinese
-    final isChinese = _isChineseInput(normalized);
+    try {
+      // Detect if input is primarily Chinese
+      final isChinese = _isChineseInput(normalized);
+      debugPrint('NLP: isChinese=$isChinese for "${normalized.length > 50 ? normalized.substring(0, 50) + "..." : normalized}"');
 
-    final dateExtraction = _extractDate(normalized, now, isChinese: isChinese);
+      final dateExtraction = _extractDate(normalized, now, isChinese: isChinese);
+      debugPrint('NLP: date=${dateExtraction.date}, hasDate=${dateExtraction.hasExplicitDate}, matched=${dateExtraction.matchedPhrases}');
     final timeExtraction = _extractTime(normalized, now, isChinese: isChinese);
     final locationExtraction = _extractLocation(normalized, isChinese: isChinese);
 
@@ -335,6 +338,10 @@ class LocalEventParserService implements EventParserService {
       hasExplicitTime: hasExplicitTime,
       sourceText: normalized,
     );
+    } catch (e) {
+      debugPrint('NLP parse error: $e');
+      throw ParserException('解析失败: $e');
+    }
   }
 
   // ─────────────────────────────────────────────────────────────
@@ -353,8 +360,8 @@ class LocalEventParserService implements EventParserService {
 
   /// Detect if input is primarily Chinese (contains CJK characters)
   bool _isChineseInput(String text) {
-    final cjkCount = RegExp(r'[\u4e00-\u9fff\u3400-\u4dbf]').allMatches(text).length;
-    return cjkCount >= 2 || text.codeUnits.any((c) => c >= 0x4e00 && c <= 0x9fff);
+    // Use code-unit check instead of regex to avoid \u escape issues across Dart regex engines
+    return text.codeUnits.any((c) => c >= 0x4E00 && c <= 0x9FFF);
   }
 
   // ─────────────────────────────────────────────────────────────
