@@ -46,3 +46,4 @@ app.*.map.json
 
 # Firebase configuration
 android/app/google-services.json
+_installed_base.apk
