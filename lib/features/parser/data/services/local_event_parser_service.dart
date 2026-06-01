@@ -1054,8 +1054,8 @@ class LocalEventParserService implements EventParserService {
     // For 上 week: the PAST occurrence
     int diff;
     if (weekOffset >= 1) {
-      // 下周: next occurrence (at least 1 day away)
-      diff = rawDiff <= 0 ? rawDiff + 7 : rawDiff;
+      // 下周: always the target weekday in the NEXT calendar week (at least 7 days)
+      diff = rawDiff + 7;
     } else if (weekOffset <= -1) {
       // 上周: most recent past occurrence
       diff = rawDiff >= 0 ? rawDiff - 7 : rawDiff;
