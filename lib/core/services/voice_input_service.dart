@@ -68,6 +68,8 @@ class VoiceInputService {
     debugPrint('VoiceInput: starting listen with locale=$effectiveLocale');
 
     try {
+      final listenStart = DateTime.now();
+
       await _speechToText.listen(
         onResult: (result) {
           onResult(result.recognizedWords, result.finalResult);
@@ -80,16 +82,27 @@ class VoiceInputService {
         localeId: effectiveLocale,
         listenOptions: SpeechListenOptions(
           partialResults: true,
-          cancelOnError: false, // Don't cancel on error — let us handle it
+          cancelOnError: false,
           listenMode: ListenMode.confirmation,
         ),
       );
 
-      // listen() completed normally
-      debugPrint('VoiceInput: listen completed normally');
+      final elapsed = DateTime.now().difference(listenStart);
+      debugPrint('VoiceInput: listen() completed after ${elapsed.inMilliseconds}ms');
+
+      // If listen() returned almost instantly, the engine failed to start
+      if (elapsed.inMilliseconds < 500) {
+        _lastError = '语音引擎未能启动（${elapsed.inMilliseconds}ms）。\n'
+            '请确认手机已安装语音服务。\n'
+            '华为/小米：去应用商店搜索"讯飞语音输入"安装\n'
+            '其他品牌：安装 Google 或讯飞语音输入';
+        _completeSession();
+        return _lastError;
+      }
+
+      // Normal completion
       _completeSession();
       return null;
-
     } catch (e) {
       debugPrint('VoiceInput: listen() threw: $e');
       _lastError = '语音识别出错: $e';
