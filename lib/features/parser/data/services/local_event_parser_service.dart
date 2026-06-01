@@ -192,7 +192,7 @@ class LocalEventParserService implements EventParserService {
   /// After the location suffix, only allows digits, letters, and location modifiers (层/栋/号/etc).
   static final RegExp _locationZhRegex = RegExp(
     r'(?:在|于|地点[：:]?\s*|位置[：:]?\s*)'
-    r'([\u4e00-\u9fff_a-zA-Z0-9（）()\-.·]{2,}'
+    r'(\S{2,}'
     r'(?:教室|教学楼|实验楼|办公楼|会议室|办公室|大厅|广场|餐厅|食堂|图书馆|体育馆|'
     r'实验室|中心|报告厅|礼堂|场馆|房间|大楼|大厦|公寓|宿舍|校区|学院|'
     r'银行|医院|酒店|饭店|商场|超市|公园|地铁站|车站|机场|'
@@ -202,7 +202,7 @@ class LocalEventParserService implements EventParserService {
 
   /// Simpler fallback: 在 XXXX （中文名詞後面）
   static final RegExp _locationZhSimpleRegex = RegExp(
-    r'(?:在|于)\s*([\u4e00-\u9fff_a-zA-Z0-9]{2,20})',
+    r'(?:在|于)\s*(\S{2,20})',
   );
 
   // ── Chinese relative date keywords ──
