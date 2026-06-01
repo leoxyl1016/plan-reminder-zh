@@ -122,6 +122,35 @@ class LocalEventParserService implements EventParserService {
     r'([一二三四五六七八九十廿卅]{1,3})\s*[日号]',
   );
 
+  /// 下周 / 这周 / 上周（不带具体星期几）
+  static final RegExp _weekOnlyZhRegex = RegExp(
+    r'(下|下个|这|这个|本|上|上个)\s*个?\s*(?:星期|周)(?!\s*[一二三四五六日天])',
+  );
+
+  /// 下个月 / 这个月 / 上个月
+  static final RegExp _monthOnlyZhRegex = RegExp(
+    r'(下|下个|这|这个|本|上|上个)\s*个?\s*月(?!\s*\d|[日号])',
+  );
+
+  /// 明年 / 今年 / 去年
+  static final RegExp _yearOnlyZhRegex = RegExp(
+    r'(今|明|去|来)\s*年',
+  );
+
+  /// Month offset map for 下个月/上个月 etc.
+  static const Map<String, int> _monthOffsetZh = <String, int>{
+    '下': 1, '下个': 1,
+    '这': 0, '这个': 0, '本': 0,
+    '上': -1, '上个': -1,
+  };
+
+  /// Year offset map for 明年/去年 etc.
+  static const Map<String, int> _yearOffsetZh = <String, int>{
+    '今': 0,
+    '明': 1, '来': 1,
+    '去': -1,
+  };
+
   // ── Chinese time regexes ──
 
   /// 上午10点 / 下午3点半 / 晚上7点20分 / 中午12点 / 凌晨2点
@@ -388,6 +417,63 @@ class LocalEventParserService implements EventParserService {
           return _DateExtraction(
             date: target,
             matchedPhrases: <String>[weekdayZhMatch.group(0)!],
+            hasExplicitDate: true,
+          );
+        }
+      }
+    }
+
+    // ── Chinese week-only: 下周 / 这周 / 上周（不带具体日期）→ 周一 ──
+    if (isChinese) {
+      final weekOnlyMatch = _weekOnlyZhRegex.firstMatch(input);
+      if (weekOnlyMatch != null) {
+        final prefix = weekOnlyMatch.group(1) ?? '';
+        final weekOffset = _weekOffsetZh[prefix] ?? 0;
+        // 下周 → next Monday; 这周 → this Monday; 上周 → last Monday
+        final target = _resolveOffsetWeekday(today, DateTime.monday, weekOffset);
+        return _DateExtraction(
+          date: target,
+          matchedPhrases: <String>[weekOnlyMatch.group(0)!],
+          hasExplicitDate: true,
+        );
+      }
+    }
+
+    // ── Chinese month-only: 下个月 / 这个月 / 上个月 ──
+    if (isChinese) {
+      final monthOnlyMatch = _monthOnlyZhRegex.firstMatch(input);
+      if (monthOnlyMatch != null) {
+        final prefix = monthOnlyMatch.group(1) ?? '';
+        final monthOffset = _monthOffsetZh[prefix] ?? 0;
+        // Same day of month, with month offset
+        final targetMonth = today.month + monthOffset;
+        final targetYear = today.year + (targetMonth > 12 ? 1 : (targetMonth < 1 ? -1 : 0));
+        final adjustedMonth = targetMonth > 12 ? targetMonth - 12 : (targetMonth < 1 ? targetMonth + 12 : targetMonth);
+        final maxDay = DateTime(targetYear, adjustedMonth + 1, 0).day;
+        final targetDay = today.day > maxDay ? maxDay : today.day;
+        final rawDate = _safeDate(targetYear, adjustedMonth, targetDay);
+        if (rawDate != null) {
+          return _DateExtraction(
+            date: rawDate,
+            matchedPhrases: <String>[monthOnlyMatch.group(0)!],
+            hasExplicitDate: true,
+          );
+        }
+      }
+    }
+
+    // ── Chinese year-only: 明年 / 今年 / 去年 ──
+    if (isChinese) {
+      final yearOnlyMatch = _yearOnlyZhRegex.firstMatch(input);
+      if (yearOnlyMatch != null) {
+        final prefix = yearOnlyMatch.group(1) ?? '';
+        final yearOffset = _yearOffsetZh[prefix] ?? 0;
+        final targetYear = today.year + yearOffset;
+        final rawDate = _safeDate(targetYear, today.month, today.day);
+        if (rawDate != null) {
+          return _DateExtraction(
+            date: rawDate,
+            matchedPhrases: <String>[yearOnlyMatch.group(0)!],
             hasExplicitDate: true,
           );
         }
