@@ -49,24 +49,24 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     final destinations = <_ShellDestination>[
       const _ShellDestination(
-        title: 'Reminder Buddy',
-        subtitle: 'Turn natural language into reminders',
+        title: '提醒助手',
+        subtitle: '用自然语言创建日程提醒',
       ),
       const _ShellDestination(
-        title: 'Calendar',
-        subtitle: 'See your day at a glance',
+        title: '日历',
+        subtitle: '一览整日日程',
       ),
       const _ShellDestination(
-        title: 'Notifications',
-        subtitle: 'Upcoming and past alert activity',
+        title: '通知',
+        subtitle: '提醒活动记录',
       ),
       const _ShellDestination(
-        title: 'Google Calendar',
-        subtitle: 'Connected external schedule',
+        title: 'Google 日历',
+        subtitle: '已连接外部日历',
       ),
       const _ShellDestination(
-        title: 'Settings',
-        subtitle: 'Tune behavior and integrations',
+        title: '设置',
+        subtitle: '调整行为与集成',
       ),
     ];
 
@@ -176,7 +176,7 @@ class _AppShellState extends State<AppShell> {
               },
               child: FloatingActionButton.extended(
                 onPressed: _addManualEvent,
-                label: const Text('Add Event'),
+                label: const Text('添加日程'),
                 icon: const Icon(Icons.add_circle_outline),
               ),
             )
@@ -197,17 +197,17 @@ class _AppShellState extends State<AppShell> {
               NavigationDestination(
                 icon: Icon(Icons.chat_bubble_outline),
                 selectedIcon: Icon(Icons.chat_bubble),
-                label: 'Home',
+                label: '首页',
               ),
               NavigationDestination(
                 icon: Icon(Icons.calendar_month_outlined),
                 selectedIcon: Icon(Icons.calendar_month),
-                label: 'Calendar',
+                label: '日历',
               ),
               NavigationDestination(
                 icon: Icon(Icons.notifications_outlined),
                 selectedIcon: Icon(Icons.notifications),
-                label: 'Alerts',
+                label: '通知',
               ),
               NavigationDestination(
                 icon: Icon(Icons.event_outlined),
@@ -217,7 +217,7 @@ class _AppShellState extends State<AppShell> {
               NavigationDestination(
                 icon: Icon(Icons.settings_outlined),
                 selectedIcon: Icon(Icons.settings),
-                label: 'Settings',
+                label: '设置',
               ),
             ],
           ),

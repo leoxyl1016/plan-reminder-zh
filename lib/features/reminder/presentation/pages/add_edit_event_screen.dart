@@ -119,7 +119,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEditMode ? 'Edit Event' : 'Add Event'),
+        title: Text(_isEditMode ? '编辑日程' : '添加日程'),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -140,18 +140,18 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        Text('Details', style: textTheme.titleMedium),
+                        Text('详细信息', style: textTheme.titleMedium),
                         const SizedBox(height: 10),
                         TextFormField(
                           controller: _titleController,
                           decoration: const InputDecoration(
-                            labelText: 'Title',
-                            hintText: 'Meeting with Sarah',
+                            labelText: '标题',
+                            hintText: '与 Sarah 的会议',
                           ),
                           textInputAction: TextInputAction.next,
                           validator: (String? value) {
                             if (value == null || value.trim().isEmpty) {
-                              return 'Title is required.';
+                              return '标题为必填项。';
                             }
                             return null;
                           },
@@ -160,8 +160,8 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
                         TextFormField(
                           controller: _locationController,
                           decoration: const InputDecoration(
-                            labelText: 'Location (optional)',
-                            hintText: 'Office, Zoom, Cafe',
+                            labelText: '地点（可选）',
+                            hintText: '办公室、Zoom、咖啡馆',
                           ),
                           textInputAction: TextInputAction.done,
                         ),
@@ -175,7 +175,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
                     Expanded(
                       child: _SelectionTile(
                         icon: Icons.calendar_today_outlined,
-                        label: 'Date',
+                        label: '日期',
                         value: _selectedDate.toDateLabel,
                         onTap: _pickDate,
                       ),
@@ -184,7 +184,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
                     Expanded(
                       child: _SelectionTile(
                         icon: Icons.access_time_outlined,
-                        label: 'Time',
+                        label: '时间',
                         value: _selectedTime.format(context),
                         onTap: _pickTime,
                       ),
@@ -195,7 +195,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 12),
                     child: Text(
-                      'Time was not detected from message. Please confirm before saving.',
+                      '未能从消息中检测到时间，请在保存前确认。',
                       style: textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.secondary,
                         fontWeight: FontWeight.w600,
@@ -208,7 +208,7 @@ class _AddEditEventScreenState extends State<AddEditEventScreen> {
                   child: FilledButton.icon(
                     onPressed: _save,
                     icon: const Icon(Icons.check_circle_outline),
-                    label: Text(_isEditMode ? 'Save Changes' : 'Create Event'),
+                    label: Text(_isEditMode ? '保存更改' : '创建日程'),
                   ),
                 ),
               ],
@@ -249,10 +249,10 @@ class _DateTimeHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('Schedule', style: theme.textTheme.titleMedium),
+          Text('日程安排', style: theme.textTheme.titleMedium),
           const SizedBox(height: 4),
           Text(
-            '$dateLabel at $timeLabel',
+            '$dateLabel $timeLabel',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.78),
             ),

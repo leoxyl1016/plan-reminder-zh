@@ -36,16 +36,16 @@ class EventDetailScreen extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: const Text('Delete Event'),
-          content: const Text('This event and its reminder will be removed.'),
+          title: const Text('删除日程'),
+          content: const Text('此日程及其提醒将被删除。'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: const Text('Cancel'),
+              child: const Text('取消'),
             ),
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: const Text('Delete'),
+              child: const Text('删除'),
             ),
           ],
         );
@@ -67,7 +67,7 @@ class EventDetailScreen extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Event Details')),
+      appBar: AppBar(title: const Text('日程详情')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
@@ -92,7 +92,7 @@ class EventDetailScreen extends StatelessWidget {
                     Text(event.title, style: textTheme.titleLarge),
                     const SizedBox(height: 4),
                     Text(
-                      '${event.dateTime.toDateLabel} at ${event.dateTime.toTimeLabel}',
+                      '${event.dateTime.toDateLabel} ${event.dateTime.toTimeLabel}',
                       style: textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
                       ),
@@ -103,25 +103,25 @@ class EventDetailScreen extends StatelessWidget {
               const SizedBox(height: 10),
               _DetailRow(
                 icon: Icons.calendar_today_outlined,
-                label: 'Date',
+                label: '日期',
                 value: event.dateTime.toDateLabel,
               ),
               const SizedBox(height: 8),
               _DetailRow(
                 icon: Icons.access_time_outlined,
-                label: 'Time',
+                label: '时间',
                 value: event.dateTime.toTimeLabel,
               ),
               const SizedBox(height: 8),
               _DetailRow(
                 icon: Icons.location_on_outlined,
-                label: 'Location',
-                value: event.location ?? 'Not set',
+                label: '地点',
+                value: event.location ?? '未设置',
               ),
               const SizedBox(height: 8),
               _DetailRow(
                 icon: Icons.history_toggle_off_outlined,
-                label: 'Created',
+                label: '创建时间',
                 value: event.createdAt.toDateTimeLabel,
               ),
               const Spacer(),
@@ -131,7 +131,7 @@ class EventDetailScreen extends StatelessWidget {
                     child: FilledButton.icon(
                       onPressed: () => _editEvent(context),
                       icon: const Icon(Icons.edit_outlined),
-                      label: const Text('Edit'),
+                      label: const Text('编辑'),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -139,7 +139,7 @@ class EventDetailScreen extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: () => _deleteEvent(context),
                       icon: const Icon(Icons.delete_outline),
-                      label: const Text('Delete'),
+                      label: const Text('删除'),
                     ),
                   ),
                 ],

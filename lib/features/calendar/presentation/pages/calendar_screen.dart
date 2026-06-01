@@ -113,7 +113,7 @@ class CalendarScreen extends StatelessWidget {
                     Row(
                       children: <Widget>[
                         Text(
-                          'Events',
+                          '日程',
                           style: theme.textTheme.titleMedium,
                         ),
                         const SizedBox(width: 8),
@@ -137,7 +137,7 @@ class CalendarScreen extends StatelessWidget {
                         child: selectedItems.isEmpty
                             ? const Center(
                                 key: ValueKey<String>('empty'),
-                                child: Text('No events for this date.'),
+                                child: Text('当天无日程'),
                               )
                             : ListView.separated(
                                 key: ValueKey<String>(
@@ -359,7 +359,7 @@ class _CalendarEventItem {
 
   String get timeLabel {
     if (isAllDay) {
-      return 'All day';
+      return '全天';
     }
 
     if (end == null) {
@@ -370,5 +370,5 @@ class _CalendarEventItem {
   }
 
   String get sourceLabel =>
-      source == _CalendarEventSource.google ? 'Google Calendar' : 'Reminder';
+      source == _CalendarEventSource.google ? 'Google 日历' : '本地提醒';
 }

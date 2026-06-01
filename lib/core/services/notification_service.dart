@@ -10,9 +10,9 @@ class NotificationService {
   NotificationService();
 
   static const String _channelId = 'plan_reminder_channel';
-  static const String _channelName = 'Reminder Buddy Alerts';
+  static const String _channelName = '提醒助手通知';
   static const String _channelDescription =
-      'Reminders scheduled before event start time.';
+      '日程提醒';
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin =
       FlutterLocalNotificationsPlugin();
@@ -109,8 +109,8 @@ class NotificationService {
 
     await _notificationsPlugin.zonedSchedule(
       _notificationId(event.id),
-      'Reminder',
-      '${event.title} starts in $_reminderOffsetMinutes minutes',
+      '提醒',
+      '${event.title} 将在 $_reminderOffsetMinutes 分钟后开始',
       tz.TZDateTime.from(triggerTime, tz.local),
       details,
       androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,

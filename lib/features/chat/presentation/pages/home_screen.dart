@@ -282,7 +282,7 @@ class _Composer extends StatelessWidget {
               onChanged: onChanged,
               onSubmitted: (_) => onSendTap(),
               decoration: InputDecoration(
-                hintText: 'Meeting with Sarah tomorrow at 10 am',
+                hintText: '输入日程内容...',
                 filled: false,
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 8),
@@ -348,14 +348,14 @@ class _AssistantBanner extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(
-                  'Reminder Buddy',
+                  '提醒助手',
                   style: theme.textTheme.titleMedium,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   state.status == ChatStatus.listening
-                      ? 'Listening now. Speak your plan naturally.'
-                      : 'Type or talk. I will parse date, time, and location.',
+                      ? '正在聆听，请自然地说出您的日程安排。'
+                      : '输入或说出日程，我会解析日期、时间和地点。',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
                   ),

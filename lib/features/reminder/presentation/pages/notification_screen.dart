@@ -50,13 +50,13 @@ class NotificationScreen extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               _SectionHeader(
-                title: 'Upcoming Notifications',
+                title: '待通知日程',
                 count: upcoming.length,
               ),
               const SizedBox(height: 8),
               if (upcoming.isEmpty)
                 const _EmptySection(
-                  message: 'No upcoming reminders to notify yet.',
+                  message: '暂无待提醒的日程',
                 )
               else
                 ...upcoming.map(
@@ -68,13 +68,13 @@ class NotificationScreen extends StatelessWidget {
                 ),
               const SizedBox(height: 14),
               _SectionHeader(
-                title: 'Notification History',
+                title: '通知记录',
                 count: history.length,
               ),
               const SizedBox(height: 8),
               if (history.isEmpty)
                 const _EmptySection(
-                  message: 'History will appear after reminder time passes.',
+                  message: '提醒时间过后将显示历史记录',
                 )
               else
                 ...history.map(
@@ -86,7 +86,7 @@ class NotificationScreen extends StatelessWidget {
                 ),
               const SizedBox(height: 8),
               Text(
-                'Notifications are scheduled ${AppConstants.reminderOffsetMinutes} minutes before event time by default.',
+                '默认在日程开始前 ${AppConstants.reminderOffsetMinutes} 分钟发送提醒。',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
                 ),
@@ -129,12 +129,12 @@ class _NotificationSummary extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('Reminder Overview', style: theme.textTheme.titleMedium),
+          Text('提醒概览', style: theme.textTheme.titleMedium),
           const SizedBox(height: 4),
           Text(
             nextReminder == null
-                ? 'No upcoming notifications'
-                : 'Next: ${nextReminder!.title} at ${nextReminder!.dateTime.toDateTimeLabel}',
+                ? '暂无待通知'
+                : '下一个: ${nextReminder!.title} @ ${nextReminder!.dateTime.toDateTimeLabel}',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
             ),
@@ -142,9 +142,9 @@ class _NotificationSummary extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: <Widget>[
-              _CountPill(label: 'Upcoming', value: upcomingCount),
+              _CountPill(label: '待通知', value: upcomingCount),
               const SizedBox(width: 8),
-              _CountPill(label: 'History', value: historyCount),
+              _CountPill(label: '历史', value: historyCount),
             ],
           ),
         ],
@@ -244,8 +244,8 @@ class _NotificationCard extends StatelessWidget {
         ),
         title: Text(event.title),
         subtitle: Text(
-          'Notify at ${reminderTime.toDateTimeLabel}\n'
-          'Event at ${event.dateTime.toDateTimeLabel}',
+          '提醒时间: ${reminderTime.toDateTimeLabel}\n'
+          '日程时间: ${event.dateTime.toDateTimeLabel}',
         ),
         isThreeLine: true,
         trailing: PopupMenuButton<String>(
@@ -265,11 +265,11 @@ class _NotificationCard extends StatelessWidget {
           itemBuilder: (BuildContext context) => const <PopupMenuEntry<String>>[
             PopupMenuItem<String>(
               value: 'reschedule',
-              child: Text('Reschedule'),
+              child: Text('重新调度'),
             ),
             PopupMenuItem<String>(
               value: 'cancel',
-              child: Text('Cancel Notification'),
+              child: Text('取消提醒'),
             ),
           ],
         ),

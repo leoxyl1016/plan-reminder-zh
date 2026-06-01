@@ -36,12 +36,12 @@ class ParsePreviewCard extends StatelessWidget {
             children: <Widget>[
               Icon(Icons.auto_awesome, color: theme.colorScheme.primary),
               const SizedBox(width: 8),
-              Text('Parsed Reminder', style: theme.textTheme.titleMedium),
+              Text('解析结果', style: theme.textTheme.titleMedium),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: onDismiss,
-                tooltip: 'Dismiss',
+                tooltip: '忽略',
               ),
             ],
           ),
@@ -63,7 +63,7 @@ class ParsePreviewCard extends StatelessWidget {
               ),
               _InfoChip(
                 icon: Icons.location_on_outlined,
-                label: parsedEvent.location ?? 'Location not set',
+                label: parsedEvent.location ?? '未设置地点',
               ),
             ],
           ),
@@ -71,7 +71,7 @@ class ParsePreviewCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(top: 10),
               child: Text(
-                'Time was not explicit. Confirm or edit before saving.',
+                '时间不明确，请确认或编辑后保存',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: warningColor,
                   fontWeight: FontWeight.w700,
@@ -85,7 +85,7 @@ class ParsePreviewCard extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: onEdit,
                   icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Edit'),
+                  label: const Text('编辑'),
                 ),
               ),
               const SizedBox(width: 10),
@@ -93,7 +93,7 @@ class ParsePreviewCard extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: onConfirm,
                   icon: const Icon(Icons.check),
-                  label: const Text('Confirm'),
+                  label: const Text('确认'),
                 ),
               ),
             ],

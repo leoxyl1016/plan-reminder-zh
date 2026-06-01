@@ -9,8 +9,22 @@ class VoiceInputService {
   bool _isEnabled = true;
   VoidCallback? _activeOnDone;
 
+  /// Currently active locale. Defaults to device locale, configurable.
+  String _localeId = '';
+
   bool get isListening => _speechToText.isListening;
   bool get isEnabled => _isEnabled;
+  String get localeId => _localeId;
+
+  /// Set the speech recognition locale.
+  /// Common values: 'zh_CN' (Mandarin), 'en_US' (English), '' (device default)
+  Future<void> setLocale(String localeId) async {
+    _localeId = localeId;
+    // Re-initialize if already initialized
+    if (_isInitialized) {
+      _isInitialized = false;
+    }
+  }
 
   Future<void> setEnabled(bool enabled) async {
     _isEnabled = enabled;
@@ -25,7 +39,7 @@ class VoiceInputService {
   }) async {
     if (!_isEnabled) {
       throw const VoiceInputException(
-        'Voice input is disabled in Settings.',
+        '语音输入已在设置中关闭',
       );
     }
 
@@ -41,6 +55,7 @@ class VoiceInputService {
       },
       listenFor: const Duration(seconds: 20),
       pauseFor: const Duration(seconds: 3),
+      localeId: _localeId.isNotEmpty ? _localeId : null,
       listenOptions: SpeechListenOptions(
         partialResults: true,
         cancelOnError: true,
@@ -78,7 +93,7 @@ class VoiceInputService {
 
     if (!available) {
       throw const VoiceInputException(
-        'Voice recognition is unavailable on this device.',
+        '此设备不支持语音识别',
       );
     }
 

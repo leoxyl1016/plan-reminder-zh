@@ -136,7 +136,7 @@ class CalendarBloc extends Bloc<CalendarEventAction, CalendarState> {
     } catch (error) {
       add(
         CalendarFailureOccurred(
-          'Saved locally, but Google Calendar sync failed: $error',
+          '已本地保存，Google 日历同步失败: $error',
         ),
       );
     }

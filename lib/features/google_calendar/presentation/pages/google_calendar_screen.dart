@@ -81,7 +81,7 @@ class _GoogleCalendarScreenState extends State<GoogleCalendarScreen> {
               ),
               const SizedBox(height: 12),
               Text(
-                'Upcoming Events',
+                '近期日程',
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -184,7 +184,7 @@ class _GoogleCalendarEventCard extends StatelessWidget {
 
   String _timeLabel(GoogleCalendarEvent event) {
     if (event.isAllDay) {
-      return 'All day';
+      return '全天';
     }
 
     if (event.end == null) {
@@ -233,16 +233,16 @@ class _DisconnectedView extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Connect Google Calendar',
+                  '连接 Google 日历',
                   style: theme.textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'See your Google Calendar upcoming events directly in this app.',
+                  '在此应用中直接查看 Google 日历的近期日程。',
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Local reminder parsing remains offline.',
+                  '本地日程解析保持离线运行。',
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
                   ),
@@ -251,7 +251,7 @@ class _DisconnectedView extends StatelessWidget {
                 FilledButton.icon(
                   onPressed: onConnect,
                   icon: const Icon(Icons.link),
-                  label: const Text('Connect Google Calendar'),
+                  label: const Text('连接 Google 日历'),
                 ),
               ],
             ),
@@ -296,12 +296,12 @@ class _ConnectedHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text('Connected as', style: theme.textTheme.labelLarge),
+          Text('已连接', style: theme.textTheme.labelLarge),
           const SizedBox(height: 4),
           Text(email, style: theme.textTheme.titleMedium),
           const SizedBox(height: 4),
           Text(
-            '$eventCount upcoming events loaded',
+            '$eventCount 条日程已加载',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
             ),
@@ -313,7 +313,7 @@ class _ConnectedHeader extends StatelessWidget {
                 child: OutlinedButton.icon(
                   onPressed: isLoading ? null : onRefresh,
                   icon: const Icon(Icons.refresh),
-                  label: const Text('Refresh'),
+                  label: const Text('刷新'),
                 ),
               ),
               const SizedBox(width: 8),
@@ -321,7 +321,7 @@ class _ConnectedHeader extends StatelessWidget {
                 child: TextButton.icon(
                   onPressed: isLoading ? null : onDisconnect,
                   icon: const Icon(Icons.link_off),
-                  label: const Text('Disconnect'),
+                  label: const Text('断开连接'),
                 ),
               ),
             ],
@@ -347,7 +347,7 @@ class _EmptyEventsCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: theme.colorScheme.outline),
       ),
-      child: const Text('No upcoming Google Calendar events found.'),
+      child: const Text('暂无 Google 日历日程'),
     );
   }
 }
