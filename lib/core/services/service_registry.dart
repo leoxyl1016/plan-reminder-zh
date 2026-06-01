@@ -37,8 +37,8 @@ class ServiceRegistry {
     await notificationService.initialize();
 
     voiceInputService = VoiceInputService();
-    // Set default locale to zh_CN for Chinese users
-    await voiceInputService.setLocale('zh_CN');
+    // Set default locale to zh-CN for Chinese users (BCP-47 format)
+    await voiceInputService.setLocale('zh-CN');
 
     googleCalendarService = GoogleCalendarService();
 

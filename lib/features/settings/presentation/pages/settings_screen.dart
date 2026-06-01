@@ -226,33 +226,49 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   String _voiceLocaleLabel(String locale) {
-    switch (locale) {
-      case 'zh_CN':
-        return '中文（普通话）';
-      case 'zh_TW':
-        return '中文（台湾）';
-      case 'zh_HK':
-        return '中文（粤语）';
-      case 'en_US':
-        return 'English (US)';
-      case 'ja_JP':
-        return '日本語';
-      case '':
-        return '跟随系统';
-      default:
-        return locale;
+    if (locale.isEmpty) return '跟随系统（自动检测）';
+    // Show BCP-47 tag + friendly name
+    final friendly = _friendlyLocaleName(locale);
+    return friendly != locale ? '$friendly ($locale)' : locale;
+  }
+
+  String _friendlyLocaleName(String locale) {
+    final lang = locale.split('-').first.split('_').first;
+    switch (lang) {
+      case 'zh': return '中文';
+      case 'en': return 'English';
+      case 'ja': return '日本語';
+      case 'ko': return '한국어';
+      case 'fr': return 'Français';
+      case 'de': return 'Deutsch';
+      case 'es': return 'Español';
+      default: return locale;
     }
   }
 
   void _showVoiceLocalePicker() {
-    final locales = <String, String>{
-      'zh_CN': '中文（普通话）',
-      'zh_TW': '中文（台湾）',
-      'zh_HK': '中文（粤语）',
-      'en_US': 'English (US)',
-      'ja_JP': '日本語',
-      '': '跟随系统',
-    };
+    // Use available locales from the device, fall back to common ones
+    final availableLocales = ServiceRegistry.voiceInputService.availableLocales;
+
+    final Map<String, String> localeMap;
+
+    if (availableLocales.isNotEmpty) {
+      localeMap = {
+        for (final l in availableLocales) l.localeId: _friendlyLocaleName(l.localeId),
+      };
+      // Always add "follow system"
+      localeMap[''] = '跟随系统';
+    } else {
+      // Fallback: common Chinese locales
+      localeMap = {
+        'zh-CN': '中文（普通话）',
+        'zh-TW': '中文（台湾）',
+        'zh-HK': '中文（粤语）',
+        'zh': '中文',
+        'en-US': 'English (US)',
+        '': '跟随系统',
+      };
+    }
 
     showModalBottomSheet<void>(
       context: context,
@@ -267,7 +283,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: Text('语音识别语言', style: theme.textTheme.titleMedium),
                 subtitle: const Text('选择语音输入时使用的识别语言'),
               ),
-              ...locales.entries.map(
+              ...localeMap.entries.map(
                 (entry) => RadioListTile<String>(
                   value: entry.key,
                   groupValue: _voiceLocale,
