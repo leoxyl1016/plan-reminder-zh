@@ -94,7 +94,7 @@ class ChatBloc extends Bloc<ChatEventAction, ChatState> {
     } catch (error) {
       final errorMessage = error is ParserException
           ? error.message
-          : 'Could not parse message.';
+          : '解析失败: ${error.toString().length > 50 ? error.toString().substring(0, 50) + "..." : error}';
       final systemMessage = _buildMessage(errorMessage, ChatAuthor.system);
 
       emit(
