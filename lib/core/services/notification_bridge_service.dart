@@ -6,6 +6,7 @@ import '../../features/parser/domain/entities/parsed_event.dart';
 import '../../features/parser/domain/services/event_parser_service.dart';
 import '../../features/reminder/domain/entities/reminder_event.dart';
 import '../../features/reminder/domain/repositories/reminder_repository.dart';
+import 'notification_service.dart';
 
 /// Bridge between Android native notification/SMS listeners and Flutter.
 /// Listens on MethodChannels for incoming SMS and notification data,
@@ -14,11 +15,14 @@ class NotificationBridgeService {
   NotificationBridgeService({
     required EventParserService parserService,
     ReminderRepository? reminderRepository,
+    NotificationService? notificationService,
   }) : _parserService = parserService,
-       _reminderRepository = reminderRepository;
+       _reminderRepository = reminderRepository,
+       _notificationService = notificationService;
 
   final EventParserService _parserService;
   final ReminderRepository? _reminderRepository;
+  final NotificationService? _notificationService;
   final Uuid _uuid = const Uuid();
 
   /// Callback when a notification is parsed into an event.
@@ -128,6 +132,16 @@ class NotificationBridgeService {
         );
         await _reminderRepository.saveEvent(reminderEvent);
         debugPrint('📩 已自动保存提醒: ${reminderEvent.title}');
+
+        // Schedule local notification (same as manual creation flow)
+        if (_notificationService != null) {
+          try {
+            await _notificationService!.scheduleReminder(reminderEvent);
+            debugPrint('📩 已调度通知: ${reminderEvent.title}');
+          } catch (e) {
+            debugPrint('📩 通知调度失败: $e');
+          }
+        }
       }
     } on ParserException {
       // Text doesn't contain a recognizable event - silently ignore

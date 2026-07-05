@@ -46,6 +46,7 @@ class ServiceRegistry {
     notificationBridgeService = NotificationBridgeService(
       parserService: parserService,
       reminderRepository: reminderRepository,
+      notificationService: notificationService,
     );
     notificationBridgeService.initialize();
 
