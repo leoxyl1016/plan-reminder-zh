@@ -31,8 +31,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _smsInterceptorEnabled = ServiceRegistry.notificationBridgeService.isInitialized;
   }
 
+  /// Format reminder offset in human-readable Chinese.
+  String _formatReminderOffset(int totalMinutes) {
+    if (totalMinutes == 0) return '按时提醒';
+    final days = totalMinutes ~/ 1440;
+    final hours = (totalMinutes % 1440) ~/ 60;
+    final mins = totalMinutes % 60;
+
+    final parts = <String>[];
+    if (days > 0) parts.add('$days 天');
+    if (hours > 0) parts.add('$hours 小时');
+    if (mins > 0) parts.add('$mins 分钟');
+    return '提前 ${parts.join(' ')}';
+  }
+
   Future<void> _changeReminderOffset() async {
-    final options = <int>[0, 5, 10, 15, 30, 60];
+    // Preset options in minutes, covering minute / hour / day ranges
+    final presetOptions = <int>[
+      0,     // 按时提醒
+      5,     // 5 分钟
+      10,    // 10 分钟
+      15,    // 15 分钟
+      30,    // 30 分钟
+      60,    // 1 小时
+      120,   // 2 小时
+      360,   // 6 小时
+      720,   // 12 小时
+      1440,  // 1 天
+      2880,  // 2 天
+      4320,  // 3 天
+      10080, // 1 周
+    ];
+
     final selected = await showModalBottomSheet<int>(
       context: context,
       showDragHandle: true,
@@ -47,16 +77,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 title: Text('提醒提前量', style: theme.textTheme.titleMedium),
                 subtitle: const Text('在日程开始前多久发送提醒'),
               ),
-              ...options.map(
-                (int minutes) => RadioListTile<int>(
-                  value: minutes,
-                  groupValue: _reminderOffsetMinutes,
-                  title: Text(
-                    minutes == 0 ? '按时提醒' : '提前 $minutes 分钟',
-                  ),
-                  onChanged: (int? value) {
-                    Navigator.of(context).pop(value);
-                  },
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: <Widget>[
+                    ...presetOptions.map(
+                      (int minutes) => RadioListTile<int>(
+                        value: minutes,
+                        groupValue: _reminderOffsetMinutes,
+                        title: Text(_formatReminderOffset(minutes)),
+                        onChanged: (int? value) {
+                          Navigator.of(context).pop(value);
+                        },
+                      ),
+                    ),
+                    // Custom input option
+                    RadioListTile<int>(
+                      value: -1,
+                      groupValue: _reminderOffsetMinutes,
+                      title: const Text(
+                        '自定义（输入分钟数）…',
+                        style: TextStyle(fontStyle: FontStyle.italic),
+                      ),
+                      onChanged: (int? _) async {
+                        Navigator.of(context).pop(); // dismiss picker first
+                        final custom = await _showCustomOffsetDialog();
+                        if (custom != null) {
+                          ServiceRegistry.notificationService
+                              .setReminderOffsetMinutes(custom);
+                          if (!mounted) return;
+                          setState(() {
+                            _reminderOffsetMinutes = custom;
+                          });
+                        }
+                      },
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -65,12 +121,75 @@ class _SettingsScreenState extends State<SettingsScreen> {
       },
     );
 
-    if (selected == null) return;
+    if (selected == null || selected == -1) return;
 
     ServiceRegistry.notificationService.setReminderOffsetMinutes(selected);
     setState(() {
       _reminderOffsetMinutes = selected;
     });
+  }
+
+  /// Show a dialog for entering a custom offset in minutes.
+  Future<int?> _showCustomOffsetDialog() async {
+    final controller = TextEditingController(
+      text: _reminderOffsetMinutes > 0
+          ? _reminderOffsetMinutes.toString()
+          : '',
+    );
+    final formKey = GlobalKey<FormState>();
+
+    final result = await showDialog<int>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('自定义提醒提前量'),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              autofocus: true,
+              decoration: const InputDecoration(
+                labelText: '分钟数',
+                hintText: '例如：90（1.5 小时）、1440（1 天）',
+                border: OutlineInputBorder(),
+              ),
+              validator: (String? value) {
+                if (value == null || value.trim().isEmpty) {
+                  return '请输入分钟数';
+                }
+                final v = int.tryParse(value.trim());
+                if (v == null || v < 0) {
+                  return '请输入有效的非负整数';
+                }
+                if (v > 43200) {
+                  return '最多提前 30 天（43200 分钟）';
+                }
+                return null;
+              },
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('取消'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  Navigator.of(context)
+                      .pop(int.parse(controller.text.trim()));
+                }
+              },
+              child: const Text('确定'),
+            ),
+          ],
+        );
+      },
+    );
+
+    controller.dispose();
+    return result;
   }
 
   Future<void> _setVoiceInputEnabled(bool enabled) async {
@@ -105,7 +224,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
         children: <Widget>[
           _HeaderCard(
-            reminderOffsetMinutes: _reminderOffsetMinutes,
+            reminderOffsetText: _formatReminderOffset(_reminderOffsetMinutes),
             voiceInputEnabled: _voiceInputEnabled,
             notificationAutoSave: _autoSaveNotifications,
           ),
@@ -118,9 +237,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _SettingTile(
                   icon: Icons.notifications_active_outlined,
                   title: '提醒提前量',
-                  subtitle: _reminderOffsetMinutes == 0
-                      ? '按时提醒（当前）'
-                      : '提前 $_reminderOffsetMinutes 分钟（当前）',
+                  subtitle: _formatReminderOffset(_reminderOffsetMinutes),
                   onTap: _changeReminderOffset,
                 ),
                 const Divider(height: 1),
@@ -342,12 +459,12 @@ class _SettingTile extends StatelessWidget {
 
 class _HeaderCard extends StatelessWidget {
   const _HeaderCard({
-    required this.reminderOffsetMinutes,
+    required this.reminderOffsetText,
     required this.voiceInputEnabled,
     required this.notificationAutoSave,
   });
 
-  final int reminderOffsetMinutes;
+  final String reminderOffsetText;
   final bool voiceInputEnabled;
   final bool notificationAutoSave;
 
@@ -373,7 +490,7 @@ class _HeaderCard extends StatelessWidget {
           Text('应用偏好', style: theme.textTheme.titleMedium),
           const SizedBox(height: 4),
           Text(
-            '当前提醒: ${reminderOffsetMinutes == 0 ? '按时提醒' : '提前 $reminderOffsetMinutes 分钟'}',
+            '当前提醒: $reminderOffsetText',
             style: theme.textTheme.bodySmall?.copyWith(
               color: theme.colorScheme.onSurface.withValues(alpha: 0.72),
             ),
