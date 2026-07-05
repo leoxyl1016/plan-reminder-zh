@@ -159,25 +159,27 @@ class LocalEventParserService implements EventParserService {
   // ── Chinese time regexes ──
 
   /// 上午10点 / 下午3点半 / 晚上7点20分 / 中午12点 / 凌晨2点
+  /// 分钟可省略「分」字：下午3点40、晚上7点20
   static final RegExp _timeZhRegex = RegExp(
     r'(上午|下午|晚上|中午|凌晨|早晨|傍晚|夜里)?\s*'
     r'(\d{1,2})\s*[点時]\s*'
-    r'(?:(\d{1,2})\s*分)?'
+    r'(?:(\d{1,2})(?:\s*分)?)?'
     r'(半)?',
   );
 
   /// 中文数字时间：三点半 / 十点二十分
+  /// 分钟可省略「分」字：七点四十、三点二十
   static final RegExp _timeZhCnRegex = RegExp(
     r'(上午|下午|晚上|中午|凌晨|早晨|傍晚|夜里)?\s*'
     r'([一二三四五六七八九十]{1,2})\s*[点時]\s*'
-    r'(?:([一二三四五六七八九十]{1,2})\s*分)?'
+    r'(?:([一二三四五六七八九十]{1,2})(?:\s*分)?)?'
     r'(半)?',
   );
 
-  /// 数字+时/小时 如 "下午3时" "14时"
+  /// 数字+时/小时 如 "下午3时" "14时" "14时30"
   static final RegExp _timeZh24Regex = RegExp(
     r'(\d{1,2})\s*[时時]'
-    r'(?:(\d{1,2})\s*分)?',
+    r'(?:(\d{1,2})(?:\s*分)?)?',
   );
 
   /// Relative time: 半小时后 / 1小时后 / 15分钟后
